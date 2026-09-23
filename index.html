@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>L'atome, couche par couche</title>
+<meta name="description" content="Tableau périodique interactif : répartition des électrons sur les couches et schéma de Lewis de chaque élément.">
+<meta name="theme-color" content="#1B3A8C">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F8FC; --card:#FFFFFF; --ink:#1B3A8C; --ink-soft:#5068B4; --rouge:#CF3548;
+  --text:#1C2130; --muted:#586078; --line:#D3DBEF; --line-strong:#AEBBDF;
+  --grid-a:rgba(60,90,180,.08); --grid-b:rgba(60,90,180,.17);
+  --c-alcalin:#F7C7C0; --c-alcalino:#F9DDB4; --c-transition:#D5DDEC; --c-pauvre:#C9E4D5;
+  --c-metalloide:#E2E6AE; --c-nonmetal:#BFE2EE; --c-halogene:#E0CBF3; --c-noble:#C6CFF7;
+  --c-lanthanide:#EDD9C6; --c-actinide:#E8C8BB; --cell-text:#1C2130;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#131A27; --card:#1B2435; --ink:#A9BEFF; --ink-soft:#7F95D8; --rouge:#FF8795;
+    --text:#E8EBF3; --muted:#9AA3B8; --line:#2B374F; --line-strong:#43527A;
+    --grid-a:rgba(200,215,255,.04); --grid-b:rgba(200,215,255,.08);
+    --c-alcalin:#5A2F33; --c-alcalino:#5A4426; --c-transition:#34405A; --c-pauvre:#264A3B;
+    --c-metalloide:#484A22; --c-nonmetal:#1F4756; --c-halogene:#45305E; --c-noble:#2F3A6E;
+    --c-lanthanide:#523E2E; --c-actinide:#553128; --cell-text:#EEF1F8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131A27; --card:#1B2435; --ink:#A9BEFF; --ink-soft:#7F95D8; --rouge:#FF8795;
+  --text:#E8EBF3; --muted:#9AA3B8; --line:#2B374F; --line-strong:#43527A;
+  --grid-a:rgba(200,215,255,.04); --grid-b:rgba(200,215,255,.08);
+  --c-alcalin:#5A2F33; --c-alcalino:#5A4426; --c-transition:#34405A; --c-pauvre:#264A3B;
+  --c-metalloide:#484A22; --c-nonmetal:#1F4756; --c-halogene:#45305E; --c-noble:#2F3A6E;
+  --c-lanthanide:#523E2E; --c-actinide:#553128; --cell-text:#EEF1F8;
+  color-scheme: dark;
+}
+:root{ box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+*,*::before,*::after{ box-sizing:inherit; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); scroll-behavior:smooth; }
+@media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } }
+body{
+  margin:0; color:var(--text); font-family:var(--body); font-size:1rem; line-height:1.5;
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid-b) 1px, transparent 1px),
+    linear-gradient(var(--grid-a) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-b) 1px, transparent 1px);
+  background-size:100% 32px, 100% 8px, 32px 100%;
+  -webkit-text-size-adjust:100%;
+}
+@media (min-width: 1180px){
+  body::before{ content:""; position:fixed; top:0; bottom:0; left:56px; width:2px; background:var(--rouge); opacity:.45; pointer-events:none; }
+}
+button{ font:inherit; color:inherit; }
+:focus-visible{ outline:3px solid var(--ink); outline-offset:2px; }
+
+.wrap{ max-width:1120px; margin:0 auto; padding:20px 16px 48px; }
+
+/* ---------- En-tête ---------- */
+.top{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px 24px; margin-bottom:18px; }
+.top h1{ font-family:var(--display); font-weight:800; font-size:clamp(1.75rem, 4.2vw, 2.7rem); line-height:1.05; letter-spacing:-.02em; color:var(--ink); margin:0 0 6px; }
+.top p{ margin:0; color:var(--muted); max-width:52ch; }
+.controls{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.search{ position:relative; }
+.search input{
+  font:inherit; width:210px; max-width:100%; padding:9px 12px; border-radius:10px;
+  border:1.5px solid var(--line-strong); background:var(--card); color:var(--text);
+}
+.search input::placeholder{ color:var(--muted); }
+.seg{ display:inline-flex; border:1.5px solid var(--line-strong); border-radius:10px; overflow:hidden; background:var(--card); }
+.seg button{ border:0; background:transparent; padding:8px 12px; cursor:pointer; font-size:.92rem; }
+.seg button + button{ border-left:1.5px solid var(--line-strong); }
+.seg button[aria-pressed="true"]{ background:var(--ink); color:var(--card); font-weight:700; }
+.toggle{
+  display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; cursor:pointer;
+  border:1.5px solid var(--line-strong); background:var(--card); font-size:.92rem;
+}
+.toggle[aria-pressed="true"]{ border-color:var(--rouge); color:var(--rouge); font-weight:700; }
+.toggle .dot{ width:10px; height:10px; border-radius:50%; border:2px solid currentColor; }
+.toggle[aria-pressed="true"] .dot{ background:currentColor; }
+
+/* ---------- Tableau ---------- */
+.table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; padding:4px 2px 10px; margin:0 -2px; }
+.ptable{
+  container-type:inline-size; min-width:540px;
+  display:grid; grid-template-columns:repeat(18, minmax(0,1fr));
+  grid-template-rows:auto repeat(7, auto) 12px repeat(2, auto); gap:3px;
+}
+.gnum{ text-align:center; font-size:10px; color:var(--muted); font-family:var(--display); font-weight:600; padding-bottom:2px; align-self:end; }
+.cell{
+  position:relative; aspect-ratio:1 / 1.1; border:1px solid rgba(0,0,0,.06); border-radius:5px; padding:0; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--cell-text);
+  transition:opacity .15s, transform .12s;
+}
+.cell .z{ position:absolute; top:2px; left:3px; font-size:8px; line-height:1; opacity:.75; font-size:clamp(7px, calc(100cqi / 18 * .2), 11px); }
+.cell .s{ font-family:var(--display); font-weight:700; line-height:1; font-size:15px; font-size:clamp(11px, calc(100cqi / 18 * .4), 22px); margin-top:3px; }
+.cell:hover{ transform:translateY(-1px); }
+.cell.sel{ outline:3px solid var(--ink); outline-offset:1px; z-index:2; }
+.cell.dim{ opacity:.22; }
+.cell.ph{ cursor:default; font-size:9px; font-size:clamp(7px, calc(100cqi / 18 * .19), 11px); text-align:center; line-height:1.15; }
+.cell.ph:hover{ transform:none; }
+.cat-alcalin{ background:var(--c-alcalin); } .cat-alcalino{ background:var(--c-alcalino); }
+.cat-transition{ background:var(--c-transition); } .cat-pauvre{ background:var(--c-pauvre); }
+.cat-metalloide{ background:var(--c-metalloide); } .cat-nonmetal{ background:var(--c-nonmetal); }
+.cat-halogene{ background:var(--c-halogene); } .cat-noble{ background:var(--c-noble); }
+.cat-lanthanide{ background:var(--c-lanthanide); } .cat-actinide{ background:var(--c-actinide); }
+.scroll-hint{ display:none; font-size:.85rem; color:var(--muted); margin:2px 0 0; }
+@media (max-width: 560px){ .scroll-hint{ display:block; } }
+
+.legend{ display:flex; flex-wrap:wrap; gap:6px 14px; margin:10px 0 26px; font-size:.84rem; color:var(--muted); }
+.legend span{ display:inline-flex; align-items:center; gap:6px; }
+.legend i{ width:14px; height:14px; border-radius:4px; display:inline-block; border:1px solid rgba(0,0,0,.08); }
+
+/* ---------- Fiche élément ---------- */
+.el-head{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+.big-tile{
+  width:104px; height:112px; border-radius:12px; border:1.5px solid rgba(0,0,0,.08); color:var(--cell-text);
+  display:flex; flex-direction:column; justify-content:space-between; padding:8px 10px; flex:0 0 auto;
+}
+.big-tile .bz{ font-weight:700; font-size:.95rem; }
+.big-tile .bs{ font-family:var(--display); font-weight:800; font-size:2.9rem; line-height:1; letter-spacing:-.02em; }
+.big-tile .bm{ font-size:.78rem; opacity:.8; }
+.el-id{ flex:1 1 220px; min-width:0; }
+.el-id h2{ font-family:var(--display); font-weight:800; font-size:clamp(1.7rem, 4vw, 2.3rem); line-height:1.05; margin:0 0 4px; letter-spacing:-.015em; }
+.el-id p{ margin:0; color:var(--muted); }
+.nav{ display:flex; gap:8px; }
+.nav button{
+  border:1.5px solid var(--line-strong); background:var(--card); border-radius:10px; padding:8px 12px; cursor:pointer;
+  font-family:var(--display); font-weight:700; min-width:64px;
+}
+.nav button:disabled{ opacity:.35; cursor:default; }
+
+.panels{ display:grid; grid-template-columns:1.35fr 1fr; gap:16px; }
+@media (max-width: 860px){ .panels{ grid-template-columns:1fr; } }
+.panel{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px 18px 20px; min-width:0; }
+.panel h3{ font-family:var(--display); font-weight:700; font-size:1.3rem; margin:0 0 12px; color:var(--ink); }
+.panel-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+.panel-head h3{ margin:0; }
+
+.shells{ display:flex; flex-wrap:wrap; gap:8px; }
+.shell{
+  border:1.5px solid var(--line-strong); border-radius:10px; padding:6px 10px 5px; min-width:60px; text-align:center;
+}
+.shell b{ display:block; font-family:var(--display); font-size:.95rem; color:var(--muted); font-weight:700; }
+.shell .n{ display:block; font-family:var(--display); font-weight:800; font-size:1.7rem; line-height:1.05; }
+.shell small{ display:block; color:var(--muted); font-size:.72rem; }
+.shell.val{ border-color:var(--rouge); }
+.shell.val .n, .shell.val b{ color:var(--rouge); }
+.notation{ font-family:var(--display); font-size:1.25rem; font-weight:600; margin:12px 0 0; }
+.notation span{ color:var(--muted); font-size:1rem; font-weight:500; margin-left:10px; }
+
+.svgbox{ display:flex; justify-content:center; margin-top:10px; }
+#bohr{ width:100%; max-width:420px; height:auto; overflow:visible; }
+#lewis{ width:100%; max-width:230px; height:auto; }
+.ring{ fill:none; stroke:var(--line-strong); stroke-width:1.4; }
+.ring.val{ stroke:var(--rouge); stroke-width:1.8; stroke-dasharray:4 4; }
+.nuc{ fill:var(--ink); }
+.nuc-s{ fill:var(--card); font-family:var(--display); font-weight:800; font-size:17px; text-anchor:middle; }
+.nuc-z{ fill:var(--card); font-family:var(--body); font-size:10px; text-anchor:middle; }
+.rlab-bg{ fill:var(--card); }
+.rlab{ fill:var(--muted); font-family:var(--display); font-weight:700; font-size:11px; text-anchor:middle; dominant-baseline:central; }
+.e{ fill:var(--ink); }
+.e.val{ fill:var(--rouge); }
+.e.pop{ animation:pop .32s cubic-bezier(.2,1.6,.4,1) both; animation-delay:var(--d); transform-box:fill-box; transform-origin:center; }
+@keyframes pop{ from{ transform:scale(0); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.spin .orbit{ animation:turn var(--t) linear infinite; transform-origin:0 0; }
+.spin .orbit.rev{ animation-direction:reverse; }
+@keyframes turn{ to{ transform:rotate(360deg); } }
+@media (prefers-reduced-motion: reduce){ .e.pop{ animation:none; } .spin .orbit{ animation:none; } }
+.key{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; font-size:.85rem; color:var(--muted); margin-top:6px; }
+.key span{ display:inline-flex; align-items:center; gap:6px; }
+.key i{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+.mini{ border:1.5px solid var(--line-strong); background:transparent; border-radius:8px; padding:5px 10px; cursor:pointer; font-size:.85rem; }
+.mini[aria-pressed="true"]{ background:var(--ink); color:var(--card); border-color:var(--ink); }
+
+.note{ margin:14px 0 0; padding:10px 12px; border-left:3px solid var(--ink-soft); background:color-mix(in srgb, var(--ink) 6%, transparent); border-radius:0 8px 8px 0; font-size:.93rem; }
+.note:empty{ display:none; }
+
+.lw-sym{ fill:var(--text); font-family:var(--display); font-weight:700; font-size:62px; text-anchor:middle; dominant-baseline:central; }
+.lw-e{ fill:var(--rouge); }
+.lw-bar{ stroke:var(--rouge); stroke-width:5; stroke-linecap:round; }
+.stats{ display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin:12px 0 0; }
+.stats div{ border:1.5px solid var(--line); border-radius:10px; padding:8px; text-align:center; }
+.stats dt{ font-size:.75rem; color:var(--muted); line-height:1.2; }
+.stats dd{ margin:2px 0 0; font-family:var(--display); font-weight:800; font-size:1.5rem; line-height:1; }
+.behaviour{ margin:14px 0 0; }
+.nolewis{ color:var(--muted); margin:6px 0 0; }
+
+/* Mode révision */
+.answer{ position:relative; }
+.revise .answer.concealed{ cursor:pointer; min-height:56px; }
+.revise .answer.concealed > *{ filter:blur(9px); opacity:.55; pointer-events:none; user-select:none; }
+.revise .answer.concealed::after{
+  content:"Touche pour révéler"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-weight:700; color:var(--rouge); font-size:.95rem; text-align:center;
+}
+#revealAll{ display:none; }
+.revise #revealAll{ display:inline-flex; }
+
+details.box{ background:var(--card); border:1px solid var(--line); border-radius:16px; padding:0 18px; margin-top:16px; }
+details.box summary{ cursor:pointer; padding:14px 0; font-family:var(--display); font-weight:700; font-size:1.1rem; color:var(--ink); }
+details.box[open]{ padding-bottom:16px; }
+details.box p, details.box li{ max-width:72ch; }
+details.box ul{ padding-left:1.2em; margin:0; }
+details.box li + li{ margin-top:6px; }
+.conf{ font-family:var(--display); font-size:1.15rem; font-weight:600; overflow-wrap:anywhere; margin:4px 0 10px; }
+.muted{ color:var(--muted); }
+footer{ margin-top:28px; color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+
+  <header class="top">
+    <div>
+      <h1>L'atome, couche par couche</h1>
+      <p>Touche un élément pour voir comment ses électrons se répartissent sur les couches et comment on dessine son schéma de Lewis.</p>
+    </div>
+    <div class="controls">
+      <div class="search">
+        <input id="q" type="search" inputmode="search" autocomplete="off" placeholder="Nom, symbole ou Z" aria-label="Rechercher un élément">
+      </div>
+      <div class="seg" role="group" aria-label="Éléments affichés">
+        <button id="fAll" aria-pressed="true">Tous</button>
+        <button id="f20" aria-pressed="false">Z 1 à 20</button>
+      </div>
+      <button class="toggle" id="reviseBtn" aria-pressed="false"><span class="dot"></span>Mode révision</button>
+    </div>
+  </header>
+
+  <div class="table-scroll" id="tableScroll">
+    <div class="ptable" id="ptable" aria-label="Tableau périodique"></div>
+  </div>
+  <p class="scroll-hint">Fais glisser le tableau vers la gauche pour voir la suite.</p>
+  <div class="legend" id="legend"></div>
+
+  <section id="detail" aria-live="polite">
+    <div class="el-head">
+      <div class="big-tile" id="bigTile"><span class="bz" id="bz"></span><span class="bs" id="bs"></span><span class="bm" id="bm"></span></div>
+      <div class="el-id">
+        <h2 id="elName"></h2>
+        <p id="elFamily"></p>
+        <p id="elMeta"></p>
+      </div>
+      <div class="nav">
+        <button id="prev" aria-label="Élément précédent"></button>
+        <button id="next" aria-label="Élément suivant"></button>
+      </div>
+    </div>
+
+    <div class="panels">
+      <article class="panel">
+        <div class="panel-head">
+          <h3>Répartition des électrons</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="mini" id="revealAll">Tout révéler</button>
+            <button class="mini" id="spinBtn" aria-pressed="false">Faire tourner</button>
+          </div>
+        </div>
+        <div class="answer" data-a="shells">
+          <div>
+            <div class="shells" id="shells"></div>
+            <p class="notation" id="notation"></p>
+          </div>
+        </div>
+        <div class="answer" data-a="bohr">
+          <div>
+            <div class="svgbox"><svg id="bohr" viewBox="-200 -200 400 400" role="img" aria-label="Modèle de Bohr"></svg></div>
+            <div class="key"><span><i style="background:var(--ink)"></i>électrons des couches internes</span><span><i style="background:var(--rouge)"></i>électrons de valence (dernière couche)</span></div>
+          </div>
+        </div>
+        <p class="note" id="shellNote"></p>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head">
+          <h3>Schéma de Lewis</h3>
+          <div class="seg" role="group" aria-label="Style du schéma de Lewis">
+            <button id="stDots" aria-pressed="true">Points</button>
+            <button id="stBars" aria-pressed="false">Tirets</button>
+          </div>
+        </div>
+        <div id="lewisZone"></div>
+      </article>
+    </div>
+
+    <details class="box">
+      <summary>Pour aller plus loin : les sous-couches s, p, d, f</summary>
+      <p class="muted" style="margin-top:0">En 9e on utilise surtout les couches K, L, M. Plus tard, on découpe chaque couche en sous-couches.</p>
+      <p style="margin-bottom:2px"><b>Configuration complète</b></p>
+      <p class="conf" id="confFull"></p>
+      <div id="confShortWrap"><p style="margin-bottom:2px"><b>Écriture abrégée</b> (avec le gaz noble précédent)</p><p class="conf" id="confShort"></p></div>
+    </details>
+
+    <details class="box">
+      <summary>Mémo : les règles à connaître</summary>
+      <ul>
+        <li>Les électrons tournent autour du noyau sur des <b>couches</b> : K, L, M, N… La couche numéro n contient au maximum 2n² électrons : K → 2, L → 8, M → 18.</li>
+        <li>Pour Z = 1 à 20, on remplit dans l'ordre : K (2), puis L (8), puis M (8), puis N. Exemple : calcium (Z = 20) → 2, 8, 8, 2.</li>
+        <li>Les <b>électrons de valence</b> sont ceux de la dernière couche. Groupe 1 → 1 électron, groupe 2 → 2, groupe 13 → 3, … groupe 17 → 7, groupe 18 → 8 (sauf l'hélium : 2).</li>
+        <li><b>Schéma de Lewis</b> : on écrit le symbole et on place les électrons de valence sur 4 côtés. D'abord 1 électron par côté, puis on forme des paires.</li>
+        <li>Un <b>électron célibataire</b> (seul) peut former une liaison. Un <b>doublet non liant</b> (une paire) ne forme pas de liaison.</li>
+        <li><b>Règles du duet et de l'octet</b> : un atome gagne, perd ou partage des électrons pour avoir 2 (duet) ou 8 (octet) électrons sur sa dernière couche, comme le gaz noble le plus proche.</li>
+      </ul>
+    </details>
+
+    <footer>Masses atomiques en unités de masse atomique (u). Pour les éléments au-delà de Z = 103, la répartition est une prédiction théorique.</footer>
+  </section>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- Données ---------- */
+const RAW = "H|Hydrogène|1.008;He|Hélium|4.0026;Li|Lithium|6.94;Be|Béryllium|9.0122;B|Bore|10.81;C|Carbone|12.011;N|Azote|14.007;O|Oxygène|15.999;F|Fluor|18.998;Ne|Néon|20.180;Na|Sodium|22.990;Mg|Magnésium|24.305;Al|Aluminium|26.982;Si|Silicium|28.085;P|Phosphore|30.974;S|Soufre|32.06;Cl|Chlore|35.45;Ar|Argon|39.948;K|Potassium|39.098;Ca|Calcium|40.078;Sc|Scandium|44.956;Ti|Titane|47.867;V|Vanadium|50.942;Cr|Chrome|51.996;Mn|Manganèse|54.938;Fe|Fer|55.845;Co|Cobalt|58.933;Ni|Nickel|58.693;Cu|Cuivre|63.546;Zn|Zinc|65.38;Ga|Gallium|69.723;Ge|Germanium|72.630;As|Arsenic|74.922;Se|Sélénium|78.971;Br|Brome|79.904;Kr|Krypton|83.798;Rb|Rubidium|85.468;Sr|Strontium|87.62;Y|Yttrium|88.906;Zr|Zirconium|91.224;Nb|Niobium|92.906;Mo|Molybdène|95.95;Tc|Technétium|(98);Ru|Ruthénium|101.07;Rh|Rhodium|102.91;Pd|Palladium|106.42;Ag|Argent|107.87;Cd|Cadmium|112.41;In|Indium|114.82;Sn|Étain|118.71;Sb|Antimoine|121.76;Te|Tellure|127.60;I|Iode|126.90;Xe|Xénon|131.29;Cs|Césium|132.91;Ba|Baryum|137.33;La|Lanthane|138.91;Ce|Cérium|140.12;Pr|Praséodyme|140.91;Nd|Néodyme|144.24;Pm|Prométhium|(145);Sm|Samarium|150.36;Eu|Europium|151.96;Gd|Gadolinium|157.25;Tb|Terbium|158.93;Dy|Dysprosium|162.50;Ho|Holmium|164.93;Er|Erbium|167.26;Tm|Thulium|168.93;Yb|Ytterbium|173.05;Lu|Lutécium|174.97;Hf|Hafnium|178.49;Ta|Tantale|180.95;W|Tungstène|183.84;Re|Rhénium|186.21;Os|Osmium|190.23;Ir|Iridium|192.22;Pt|Platine|195.08;Au|Or|196.97;Hg|Mercure|200.59;Tl|Thallium|204.38;Pb|Plomb|207.2;Bi|Bismuth|208.98;Po|Polonium|(209);At|Astate|(210);Rn|Radon|(222);Fr|Francium|(223);Ra|Radium|(226);Ac|Actinium|(227);Th|Thorium|232.04;Pa|Protactinium|231.04;U|Uranium|238.03;Np|Neptunium|(237);Pu|Plutonium|(244);Am|Américium|(243);Cm|Curium|(247);Bk|Berkélium|(247);Cf|Californium|(251);Es|Einsteinium|(252);Fm|Fermium|(257);Md|Mendélévium|(258);No|Nobélium|(259);Lr|Lawrencium|(262);Rf|Rutherfordium|(267);Db|Dubnium|(268);Sg|Seaborgium|(269);Bh|Bohrium|(270);Hs|Hassium|(269);Mt|Meitnérium|(278);Ds|Darmstadtium|(281);Rg|Roentgenium|(282);Cn|Copernicium|(285);Nh|Nihonium|(286);Fl|Flérovium|(289);Mc|Moscovium|(290);Lv|Livermorium|(293);Ts|Tennesse|(294);Og|Oganesson|(294)";
+
+const CAT = {};
+const setCat = (list, c) => list.forEach(z => CAT[z] = c);
+setCat([3,11,19,37,55,87], "alcalin");
+setCat([4,12,20,38,56,88], "alcalino");
+setCat([1,6,7,8,15,16,34], "nonmetal");
+setCat([9,17,35,53,85,117], "halogene");
+setCat([2,10,18,36,54,86,118], "noble");
+setCat([5,14,32,33,51,52], "metalloide");
+setCat([13,31,49,50,81,82,83,84,113,114,115,116], "pauvre");
+for (let z=57; z<=71; z++) CAT[z] = "lanthanide";
+for (let z=89; z<=103; z++) CAT[z] = "actinide";
+for (let z=1; z<=118; z++) if (!CAT[z]) CAT[z] = "transition";
+
+const CAT_PLURAL = { alcalin:"Métaux alcalins", alcalino:"Métaux alcalino-terreux", transition:"Métaux de transition", pauvre:"Métaux pauvres", metalloide:"Métalloïdes", nonmetal:"Non-métaux", halogene:"Halogènes", noble:"Gaz nobles", lanthanide:"Lanthanides", actinide:"Actinides" };
+const CAT_ONE = { alcalin:"Métal alcalin", alcalino:"Métal alcalino-terreux", transition:"Métal de transition", pauvre:"Métal pauvre", metalloide:"Métalloïde", nonmetal:"Non-métal", halogene:"Halogène", noble:"Gaz noble", lanthanide:"Lanthanide (terre rare)", actinide:"Actinide" };
+
+function position(z){
+  if (z === 1) return {period:1, group:1, row:1, col:1};
+  if (z === 2) return {period:1, group:18, row:1, col:18};
+  let p, g;
+  if (z <= 10){ p=2; g = z===3?1 : z===4?2 : z+8; }
+  else if (z <= 18){ p=3; g = z===11?1 : z===12?2 : z; }
+  else if (z <= 36){ p=4; g = z-18; }
+  else if (z <= 54){ p=5; g = z-36; }
+  else if (z <= 86){
+    p=6;
+    if (z>=57 && z<=71) return {period:6, group:null, row:10, col:z-57+3, fblock:true};
+    g = z===55?1 : z===56?2 : z-68;
+  } else {
+    p=7;
+    if (z>=89 && z<=103) return {period:7, group:null, row:11, col:z-89+3, fblock:true};
+    g = z===87?1 : z===88?2 : z-100;
+  }
+  return {period:p, group:g, row:p, col:g};
+}
+
+/* Remplissage (règle de Klechkowski) + exceptions connues */
+const ORDER = ["1s","2s","2p","3s","3p","4s","3d","4p","5s","4d","5p","6s","4f","5d","6p","7s","5f","6d","7p"];
+const CAP = {s:2, p:6, d:10, f:14};
+const EXC = {
+  24:{"4s":-1,"3d":1}, 29:{"4s":-1,"3d":1}, 41:{"5s":-1,"4d":1}, 42:{"5s":-1,"4d":1},
+  44:{"5s":-1,"4d":1}, 45:{"5s":-1,"4d":1}, 46:{"5s":-2,"4d":2}, 47:{"5s":-1,"4d":1},
+  57:{"4f":-1,"5d":1}, 58:{"4f":-1,"5d":1}, 64:{"4f":-1,"5d":1}, 78:{"6s":-1,"5d":1}, 79:{"6s":-1,"5d":1},
+  89:{"5f":-1,"6d":1}, 90:{"5f":-2,"6d":2}, 91:{"5f":-1,"6d":1}, 92:{"5f":-1,"6d":1}, 93:{"5f":-1,"6d":1},
+  96:{"5f":-1,"6d":1}, 103:{"6d":-1,"7p":1}
+};
+function subshells(z){
+  const c = {}; let left = z;
+  for (const o of ORDER){ if (!left) break; const n = Math.min(CAP[o[1]], left); c[o] = n; left -= n; }
+  const ex = EXC[z];
+  if (ex) for (const k in ex){ c[k] = (c[k]||0) + ex[k]; if (c[k] === 0) delete c[k]; }
+  return c;
+}
+function shellsOf(conf){
+  const sh = [];
+  for (const k in conf){ const n = parseInt(k,10); sh[n-1] = (sh[n-1]||0) + conf[k]; }
+  for (let i=0;i<sh.length;i++) if (!sh[i]) sh[i] = 0;
+  return sh;
+}
+
+const ELS = RAW.split(";").map((row, i) => {
+  const [sym, name, mass] = row.split("|");
+  const z = i + 1;
+  const conf = subshells(z);
+  return { z, sym, name, mass, cat:CAT[z], pos:position(z), conf, shells:shellsOf(conf) };
+});
+
+const LETTERS = ["K","L","M","N","O","P","Q"];
+const SUP = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+const sup = s => String(s).replace(/\d/g, d => SUP[d]);
+const NOBLES = [2,10,18,36,54,86,118];
+const NOBLE_NAME = {2:"l'hélium", 10:"le néon", 18:"l'argon", 36:"le krypton", 54:"le xénon", 86:"le radon"};
+const frNum = s => String(s).replace(".", ",");
+const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+
+/* ---------- État ---------- */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem("atome:"+k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem("atome:"+k, JSON.stringify(v)); } catch(e){} }
+};
+const state = {
+  z: store.get("z", 11),
+  style: store.get("style", "dots"),
+  only20: false,
+  revise: false,
+  spin: false,
+  query: ""
+};
+
+/* ---------- Tableau ---------- */
+const $ = id => document.getElementById(id);
+const table = $("ptable");
+const cells = {};
+
+function buildTable(){
+  const frag = document.createDocumentFragment();
+  for (let g=1; g<=18; g++){
+    const d = document.createElement("div");
+    d.className = "gnum"; d.textContent = g;
+    d.style.gridRow = 1; d.style.gridColumn = g;
+    frag.appendChild(d);
+  }
+  ELS.forEach(el => {
+    const b = document.createElement("button");
+    b.className = "cell cat-" + el.cat;
+    // lignes : 1 = numéros de groupe, 2-8 = périodes, 9 = espace, 10-11 = lanthanides/actinides
+    b.style.gridRow = el.pos.fblock ? el.pos.row : el.pos.row + 1;
+    b.style.gridColumn = el.pos.col;
+    b.innerHTML = '<span class="z">'+el.z+'</span><span class="s">'+el.sym+'</span>';
+    b.setAttribute("aria-label", el.name + ", Z = " + el.z);
+    b.title = el.name + " (Z = " + el.z + ")";
+    b.addEventListener("click", () => select(el.z, true));
+    cells[el.z] = b;
+    frag.appendChild(b);
+  });
+  [[7,"57–71"],[8,"89–103"]].forEach(([row, txt], i) => {
+    const d = document.createElement("div");
+    d.className = "cell ph cat-" + (i ? "actinide" : "lanthanide");
+    d.style.gridRow = row; d.style.gridColumn = 3;
+    d.textContent = txt;
+    d.setAttribute("aria-hidden","true");
+    d.dataset.ph = "1";
+    frag.appendChild(d);
+  });
+  table.appendChild(frag);
+
+  const leg = $("legend");
+  leg.innerHTML = Object.keys(CAT_PLURAL).map(c => '<span><i class="cat-'+c+'"></i>'+CAT_PLURAL[c]+'</span>').join("");
+}
+
+function matches(el, q){
+  if (!q) return true;
+  const n = norm(q);
+  if (/^\d+$/.test(n)) return el.z === parseInt(n,10);
+  return el.sym.toLowerCase() === n || norm(el.name).startsWith(n) || (n.length <= 2 && el.sym.toLowerCase().startsWith(n));
+}
+function bestMatch(q){
+  const n = norm(q);
+  if (!n) return null;
+  if (/^\d+$/.test(n)){ const z = parseInt(n,10); return (z>=1 && z<=118) ? z : null; }
+  const exact = ELS.find(e => e.sym.toLowerCase() === n || norm(e.name) === n);
+  if (exact) return exact.z;
+  const list = ELS.filter(e => matches(e, q));
+  return list.length ? list[0].z : null;
+}
+function refreshDims(){
+  ELS.forEach(el => {
+    const hide = (state.only20 && el.z > 20) || !matches(el, state.query);
+    cells[el.z].classList.toggle("dim", hide);
+  });
+  table.querySelectorAll("[data-ph]").forEach(p => p.classList.toggle("dim", state.only20 || !!state.query));
+}
+
+/* ---------- Dessins ---------- */
+function drawBohr(el){
+  const sh = el.shells, s = sh.length;
+  const r0 = 52, rMax = 178;
+  const step = s > 1 ? Math.min(40, (rMax - r0) / (s - 1)) : 0;
+  const eR = s <= 4 ? 5.5 : 4.4;
+  const delay = Math.min(45, 1300 / el.z);
+  let rings = "", labels = "", orbits = "", idx = 0;
+  for (let i=0; i<s; i++){
+    const r = r0 + i*step, val = i === s-1;
+    rings += '<circle class="ring'+(val?' val':'')+'" r="'+r.toFixed(1)+'"/>';
+    labels += '<rect class="rlab-bg" x="-8" y="'+(-r-7).toFixed(1)+'" width="16" height="14" rx="3"/><text class="rlab" x="0" y="'+(-r).toFixed(1)+'">'+LETTERS[i]+'</text>';
+    let dots = "";
+    const n = sh[i];
+    for (let k=0; k<n; k++){
+      const a = (-90 + (k + 0.5) * 360 / n) * Math.PI / 180;
+      dots += '<circle class="e pop'+(val?' val':'')+'" r="'+eR+'" cx="'+(r*Math.cos(a)).toFixed(1)+'" cy="'+(r*Math.sin(a)).toFixed(1)+'" style="--d:'+Math.round(idx*delay)+'ms"/>';
+      idx++;
+    }
+    orbits += '<g class="orbit'+(i%2?' rev':'')+'" style="--t:'+(14 + i*6)+'s">'+dots+'</g>';
+  }
+  const nucleus = '<circle class="nuc" r="30"/><text class="nuc-s" y="1">'+el.sym+'</text><text class="nuc-z" y="16">'+el.z+' p⁺</text>';
+  const svg = $("bohr");
+  svg.innerHTML = rings + labels + orbits + nucleus;
+  svg.setAttribute("aria-label", "Modèle en couches de " + el.name + " : " + sh.join(", "));
+}
+
+function isMainGroup(el){
+  const g = el.pos.group;
+  return !el.pos.fblock && (g === 1 || g === 2 || g >= 13);
+}
+
+function lewisLayout(el){
+  const val = el.z === 2 ? 2 : el.shells[el.shells.length - 1];
+  const order = ["right","left","top","bottom"];
+  const counts = {right:0,left:0,top:0,bottom:0};
+  if (el.z === 2) counts.right = 2;
+  else {
+    for (let i=0; i<Math.min(val,4); i++) counts[order[i]] = 1;
+    for (let i=0; i<val-4; i++) counts[order[i]] = 2;
+  }
+  let single = 0, pairs = 0;
+  for (const k in counts){ if (counts[k] === 1) single++; if (counts[k] === 2) pairs++; }
+  return {val, counts, single, pairs};
+}
+
+function drawLewis(el, lay){
+  const hx = el.sym.length > 1 ? 56 : 40, vy = 46;
+  const P = { right:[hx,0,"v"], left:[-hx,0,"v"], top:[0,-vy,"h"], bottom:[0,vy,"h"] };
+  let g = "";
+  for (const side in lay.counts){
+    const c = lay.counts[side]; if (!c) continue;
+    const [x,y,t] = P[side];
+    if (c === 1) g += '<circle class="lw-e" cx="'+x+'" cy="'+y+'" r="5.5"/>';
+    else if (state.style === "bars"){
+      g += t === "v" ? '<line class="lw-bar" x1="'+x+'" y1="-14" x2="'+x+'" y2="14"/>'
+                     : '<line class="lw-bar" x1="-14" y1="'+y+'" x2="14" y2="'+y+'"/>';
+    } else {
+      g += t === "v" ? '<circle class="lw-e" cx="'+x+'" cy="-9" r="5.5"/><circle class="lw-e" cx="'+x+'" cy="9" r="5.5"/>'
+                     : '<circle class="lw-e" cx="-9" cy="'+y+'" r="5.5"/><circle class="lw-e" cx="9" cy="'+y+'" r="5.5"/>';
+    }
+  }
+  return '<svg id="lewis" viewBox="-100 -100 200 200" role="img" aria-label="Schéma de Lewis de '+el.name+'"><text class="lw-sym" x="0" y="2">'+el.sym+'</text>'+g+'</svg>';
+}
+
+function behaviour(el, lay){
+  const z = el.z, g = el.pos.group, S = el.sym, name = el.name;
+  const prevN = [...NOBLES].reverse().find(n => n < z);
+  const nextN = NOBLES.find(n => n > z);
+  if (z >= 113) return "Élément synthétique très instable : sa chimie est encore mal connue. Le schéma est une prédiction.";
+  if (z === 1) return "L'hydrogène a 1 électron. Il lui en manque 1 pour avoir 2 électrons comme l'hélium (règle du duet) : il forme 1 liaison covalente. Il peut aussi perdre son électron et devenir l'ion H⁺.";
+  if (g === 18) return z === 2
+    ? "Sa couche K est pleine avec 2 électrons (duet) : l'hélium est très stable et ne forme pas de liaisons."
+    : "Sa dernière couche contient 8 électrons (octet), donc " + NOBLE_NAME[z] + " est très stable et ne forme presque jamais de liaisons.";
+  const rule = prevN === 2 ? "duet" : "octet";
+  if (g === 1) return "Il a 1 électron de valence. Il le perd facilement et devient l'ion " + S + "⁺, qui a la même répartition que " + NOBLE_NAME[prevN] + " (règle du " + rule + ").";
+  if (g === 2) return "Il a 2 électrons de valence. Il les perd et devient l'ion " + S + "²⁺, qui a la même répartition que " + NOBLE_NAME[prevN] + " (règle du " + rule + ").";
+  if (g === 13){
+    if (z === 5) return "Le bore a 3 électrons célibataires : il les met en commun et forme 3 liaisons covalentes.";
+    if (z === 13) return "Il perd ses 3 électrons de valence et devient l'ion Al³⁺, qui a la même répartition que le néon (octet).";
+    return "Il a 3 électrons de valence et tend à les perdre pour former l'ion " + S + "³⁺.";
+  }
+  if (g === 14){
+    if ([6,14,32].includes(z)) return "Il a 4 électrons célibataires : il les met en commun et forme 4 liaisons covalentes pour atteindre l'octet.";
+    return "C'est un métal avec 4 électrons de valence.";
+  }
+  if (g === 15){
+    if (z === 7 || z === 15) return "Il lui manque 3 électrons pour l'octet : il forme 3 liaisons covalentes (et garde 1 doublet non liant), ou il gagne 3 électrons et devient l'ion " + S + "³⁻, comme " + NOBLE_NAME[nextN] + ".";
+    if (z === 33 || z === 51) return "Il a 3 électrons célibataires : il forme en général 3 liaisons covalentes.";
+    return "C'est un métal avec 5 électrons de valence.";
+  }
+  if (g === 16){
+    if ([8,16,34].includes(z)) return "Il lui manque 2 électrons pour l'octet : il forme 2 liaisons covalentes (et garde 2 doublets non liants), ou il gagne 2 électrons et devient l'ion " + S + "²⁻, comme " + NOBLE_NAME[nextN] + ".";
+    if (z === 52) return "Il a 2 électrons célibataires : il forme en général 2 liaisons covalentes.";
+    return "Il a 6 électrons de valence.";
+  }
+  if (g === 17){
+    if ([9,17,35,53].includes(z)) return "Il lui manque 1 électron pour l'octet : il forme 1 liaison covalente (et garde 3 doublets non liants), ou il gagne 1 électron et devient l'ion " + S + "⁻, comme " + NOBLE_NAME[nextN] + ".";
+    return "Il a 7 électrons de valence.";
+  }
+  return lay.val + " électrons de valence.";
+}
+
+function shellNote(el){
+  const z = el.z;
+  const parts = [];
+  if (z <= 18) parts.push("Chaque couche se remplit avant de passer à la suivante : K (2 au maximum), puis L (8 au maximum), puis M.");
+  else if (z <= 20) parts.push("Attention : la couche M peut contenir jusqu'à 18 électrons, mais après 8 électrons, les suivants vont d'abord sur la couche N. C'est pour ça que " + (z === 19 ? "le potassium donne 2, 8, 8, 1." : "le calcium donne 2, 8, 8, 2."));
+  else parts.push("Au-delà de Z = 20, les couches internes (M, N…) se complètent alors que la couche suivante est déjà commencée, donc on ne suit plus simplement 2, 8, 8. En 9e, on étudie surtout les éléments de Z = 1 à 20.");
+  if (EXC[z]) parts.push("Cet élément est une exception : un électron change de place pour rendre l'atome plus stable.");
+  if (z >= 104) parts.push("Élément synthétique : répartition prédite par la théorie.");
+  return parts.join(" ");
+}
+
+/* ---------- Fiche ---------- */
+function renderLewis(el){
+  const zone = $("lewisZone");
+  if (!isMainGroup(el)){
+    const last = el.shells.length;
+    zone.innerHTML =
+      '<p class="nolewis">On ne dessine généralement pas de schéma de Lewis pour les ' + (el.pos.fblock ? (el.cat === "lanthanide" ? "lanthanides" : "actinides") : "métaux de transition") +
+      ' : leurs électrons de valence ne se trouvent pas seulement sur la dernière couche. Le schéma de Lewis s\'utilise surtout pour les groupes 1, 2 et 13 à 18.</p>' +
+      '<div class="answer" data-a="lw"><div><p class="behaviour">Dernière couche (' + LETTERS[last-1] + ') : <b>' + el.shells[last-1] + ' électron' + (el.shells[last-1] > 1 ? "s" : "") + '</b>.</p></div></div>';
+  } else {
+    const lay = lewisLayout(el);
+    zone.innerHTML =
+      '<div class="answer" data-a="lw"><div><div class="svgbox">' + drawLewis(el, lay) + '</div>' +
+      '<dl class="stats">' +
+        '<div><dt>Électrons de valence</dt><dd>' + lay.val + '</dd></div>' +
+        '<div><dt>Électrons célibataires</dt><dd>' + lay.single + '</dd></div>' +
+        '<div><dt>Doublets non liants</dt><dd>' + lay.pairs + '</dd></div>' +
+      '</dl></div></div>' +
+      '<div class="answer" data-a="bh"><div><p class="behaviour">' + behaviour(el, lay) + '</p></div></div>';
+  }
+  applyConceal(zone);
+}
+
+function select(z, fromUser){
+  const el = ELS[z-1];
+  if (!el) return;
+  state.z = z; store.set("z", z);
+  Object.values(cells).forEach(c => c.classList.remove("sel"));
+  cells[z].classList.add("sel");
+
+  const tile = $("bigTile");
+  tile.className = "big-tile cat-" + el.cat;
+  $("bz").textContent = el.z;
+  $("bs").textContent = el.sym;
+  const radio = el.mass.startsWith("(");
+  const m = el.mass.replace(/[()]/g,"");
+  $("bm").textContent = frNum(m) + " u";
+  $("elName").textContent = el.name;
+  const where = el.pos.fblock ? "Période " + el.pos.period : "Groupe " + el.pos.group + ", période " + el.pos.period;
+  $("elFamily").textContent = CAT_ONE[el.cat] + " : " + where.charAt(0).toLowerCase() + where.slice(1);
+  $("elMeta").textContent = el.z + " protons et " + el.z + " électrons (atome neutre). Masse atomique : " + (radio ? "environ " + m + " u (radioactif)" : frNum(m) + " u") + ".";
+
+  const p = ELS[z-2], n = ELS[z];
+  $("prev").textContent = p ? "‹ " + p.sym : "‹";
+  $("next").textContent = n ? n.sym + " ›" : "›";
+  $("prev").disabled = !p; $("next").disabled = !n;
+
+  const sh = el.shells;
+  $("shells").innerHTML = sh.map((c,i) =>
+    '<div class="shell'+(i===sh.length-1?' val':'')+'"><b>'+LETTERS[i]+'</b><span class="n">'+c+'</span><small>max '+(2*(i+1)*(i+1))+'</small></div>'
+  ).join("");
+  $("notation").innerHTML = sh.map((c,i) => "("+LETTERS[i]+")"+sup(c)).join(" ") + '<span>' + sh.join(", ") + '</span>';
+  drawBohr(el);
+  $("shellNote").textContent = shellNote(el);
+
+  const order = ORDER.filter(k => el.conf[k]);
+  $("confFull").textContent = order.map(k => k + sup(el.conf[k])).join(" ");
+  const core = [...NOBLES].reverse().find(nz => nz < z);
+  if (core && z > 2){
+    const cc = ELS[core-1].conf;
+    const rest = order.filter(k => el.conf[k] - (cc[k]||0) > 0).map(k => k + sup(el.conf[k] - (cc[k]||0)));
+    $("confShort").textContent = "[" + ELS[core-1].sym + "] " + rest.join(" ");
+    $("confShortWrap").hidden = false;
+  } else $("confShortWrap").hidden = true;
+
+  renderLewis(el);
+  document.querySelectorAll("#detail .answer").forEach(a => a.classList.add("concealed"));
+  applyConceal(document);
+
+  if (fromUser && window.innerWidth < 900){
+    const d = $("detail").getBoundingClientRect();
+    if (d.top > window.innerHeight * 0.6 || d.top < 0) $("detail").scrollIntoView({block:"start"});
+  }
+}
+
+function applyConceal(root){
+  root.querySelectorAll(".answer").forEach(a => {
+    if (!a.dataset.bound){
+      a.dataset.bound = "1";
+      a.addEventListener("click", () => a.classList.remove("concealed"));
+    }
+    if (!a.classList.contains("concealed") && root !== document) a.classList.add("concealed");
+  });
+}
+
+/* ---------- Contrôles ---------- */
+function setStyle(s){
+  state.style = s; store.set("style", s);
+  $("stDots").setAttribute("aria-pressed", s === "dots");
+  $("stBars").setAttribute("aria-pressed", s === "bars");
+  const el = ELS[state.z-1];
+  if (isMainGroup(el)){
+    const svg = document.getElementById("lewis");
+    if (svg) svg.outerHTML = drawLewis(el, lewisLayout(el));
+  }
+}
+$("stDots").addEventListener("click", () => setStyle("dots"));
+$("stBars").addEventListener("click", () => setStyle("bars"));
+
+function setOnly20(v){
+  state.only20 = v;
+  $("fAll").setAttribute("aria-pressed", !v);
+  $("f20").setAttribute("aria-pressed", v);
+  refreshDims();
+}
+$("fAll").addEventListener("click", () => setOnly20(false));
+$("f20").addEventListener("click", () => setOnly20(true));
+
+$("reviseBtn").addEventListener("click", () => {
+  state.revise = !state.revise;
+  $("reviseBtn").setAttribute("aria-pressed", state.revise);
+  $("app").classList.toggle("revise", state.revise);
+  document.querySelectorAll("#detail .answer").forEach(a => a.classList.add("concealed"));
+});
+$("revealAll").addEventListener("click", () => document.querySelectorAll("#detail .answer").forEach(a => a.classList.remove("concealed")));
+
+$("spinBtn").addEventListener("click", () => {
+  state.spin = !state.spin;
+  $("spinBtn").setAttribute("aria-pressed", state.spin);
+  $("spinBtn").textContent = state.spin ? "Arrêter" : "Faire tourner";
+  $("bohr").classList.toggle("spin", state.spin);
+});
+
+$("prev").addEventListener("click", () => { if (state.z > 1) select(state.z - 1); });
+$("next").addEventListener("click", () => { if (state.z < 118) select(state.z + 1); });
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  if (e.key === "ArrowLeft" && state.z > 1) select(state.z - 1);
+  if (e.key === "ArrowRight" && state.z < 118) select(state.z + 1);
+});
+
+const q = $("q");
+q.addEventListener("input", () => {
+  state.query = q.value;
+  refreshDims();
+  const list = ELS.filter(e => matches(e, q.value));
+  if (q.value && list.length === 1) select(list[0].z);
+});
+q.addEventListener("keydown", e => {
+  if (e.key === "Enter"){
+    const z = bestMatch(q.value);
+    if (z){ select(z, true); q.blur(); }
+  }
+  if (e.key === "Escape"){ q.value = ""; state.query = ""; refreshDims(); }
+});
+q.addEventListener("search", () => { state.query = q.value; refreshDims(); });
+
+/* ---------- Démarrage ---------- */
+buildTable();
+setStyle(state.style);
+select(state.z >= 1 && state.z <= 118 ? state.z : 11);
+const sc = cells[state.z];
+if (sc && window.innerWidth < 600){ const ts = $("tableScroll"); ts.scrollLeft = Math.max(0, sc.offsetLeft - ts.clientWidth / 2); }
+})();
+</script>
+</body>
+</html>
